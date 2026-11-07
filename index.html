@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#101629">
+  <title>Flow State</title>
+
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='42' fill='%23151c2c' stroke='%2378e6dc' stroke-width='7'/%3E%3Cpath d='M50 24 V50 L68 62' fill='none' stroke='%2378e6dc' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body data-theme="night-des">
+
+  <div class="background-overlay"></div>
+
+  <header class="topbar">
+    <a class="brand" href="#">
+      <i data-lucide="clock-3"></i>
+      <span>Flow State</span>
+    </a>
+    <div id="liveClock"></div>
+  </header>
+
+  <nav class="sidebar">
+    <button class="side-button active" data-open="home" title="Home">
+      <i data-lucide="house"></i>
+    </button>
+    <button class="side-button" data-open="music" title="Music">
+      <i data-lucide="music-2"></i>
+    </button>
+    <button class="side-button" data-open="tasks" title="Tasks">
+      <i data-lucide="list-checks"></i>
+    </button>
+    <button class="side-button" data-open="custom" title="Customise">
+      <i data-lucide="palette"></i>
+    </button>
+  </nav>
+
+  <main class="main-content">
+    <section class="timer-area">
+
+      <div class="session-selector">
+        <button class="session-button active" data-mode="focus">Focus</button>
+        <button class="session-button" data-mode="short">Short Break</button>
+        <button class="session-button" data-mode="long">Long Break</button>
+      </div>
+
+      <div class="timer-ring">
+        <svg class="ring-svg" viewBox="0 0 300 300">
+          <defs>
+            <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#62E8F5"/>
+              <stop offset="48%" stop-color="var(--accent)"/>
+              <stop offset="100%" stop-color="#C18BFF"/>
+            </linearGradient>
+          </defs>
+
+          <circle class="ring-track" cx="150" cy="150" r="137"></circle>
+          <circle class="ring-progress" id="progressRing" cx="150" cy="150" r="137"></circle>
+        </svg>
+
+        <div class="timer-content">
+          <button class="time-display" id="timeDisplay" title="Click to edit time">
+            <span id="timerText">45:00</span>
+            <i data-lucide="pencil" class="edit-icon"></i>
+          </button>
+
+          <input
+            id="timeEdit"
+            class="time-edit"
+            type="text"
+            inputmode="numeric"
+            placeholder="MM:SS"
+            hidden
+          >
+
+          <p id="sessionLabel" class="session-label">Focus Session</p>
+          <span class="timer-dot"></span>
+        </div>
+      </div>
+
+      <p class="focus-quote">
+        Small steps every day<br>
+        lead to big results.
+      </p>
+
+      <button
+        id="stopAlarmButton"
+        type="button"
+        hidden
+        style="
+          padding: 10px 22px;
+          margin-bottom: 12px;
+          border: 1px solid rgba(255,255,255,0.3);
+          border-radius: 30px;
+          background: rgba(180,65,75,0.85);
+          color: white;
+          font: 600 13px 'Manrope', sans-serif;
+          cursor: pointer;
+        "
+      >
+        Stop Alarm
+      </button>
+
+      <div class="bottom-controls">
+
+        <button class="utility-pill" id="musicButton">
+          <span class="utility-icon"><i data-lucide="music-2"></i></span>
+          <span class="utility-copy">
+            <strong>Music</strong>
+            <small id="musicCurrentLabel">Rain</small>
+          </span>
+          <i data-lucide="chevron-down" class="utility-chevron"></i>
+        </button>
+
+        <button class="reset-button" id="resetButton" title="Reset">
+          <i data-lucide="rotate-ccw"></i>
+        </button>
+
+        <button class="start-button" id="startButton">
+          <i data-lucide="play" id="startIcon"></i>
+          <span id="startText">Start</span>
+        </button>
+
+        <button class="utility-pill" id="tasksButton">
+          <span class="utility-icon"><i data-lucide="list-checks"></i></span>
+          <span class="utility-copy">
+            <strong>Tasks</strong>
+            <small id="taskCurrentLabel">0 active</small>
+          </span>
+          <i data-lucide="chevron-down" class="utility-chevron"></i>
+        </button>
+
+      </div>
+    </section>
+  </main>
+
+  <div class="panel-backdrop" id="panelBackdrop"></div>
+
+  <!-- MUSIC PANEL -->
+  <aside class="side-panel" id="musicPanel" aria-hidden="true">
+
+    <div class="panel-header">
+      <div>
+        <p class="eyebrow">YOUR SOUNDSPACE</p>
+        <h2>Music</h2>
+      </div>
+      <button class="icon-button panel-close" aria-label="Close">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+
+    <section class="panel-section">
+      <div class="section-heading">
+        <h3>Stations</h3>
+        <span class="subtle-label">SELECT A TRACK</span>
+      </div>
+
+      <div class="station-list">
+
+        <button class="station-card selected" data-track="rain">
+          <span class="station-art rain-art"><i data-lucide="cloud-rain"></i></span>
+          <span class="station-copy">
+            <strong>Rain</strong>
+            <small>Soft rainfall ambience</small>
+          </span>
+          <i data-lucide="check-circle-2" class="station-check"></i>
+        </button>
+
+        <button class="station-card" data-track="classical">
+          <span class="station-art classical-art"><i data-lucide="music"></i></span>
+          <span class="station-copy">
+            <strong>Classical</strong>
+            <small>Quiet instrumental music</small>
+          </span>
+          <i data-lucide="check-circle-2" class="station-check"></i>
+        </button>
+
+        <button class="station-card" data-track="lofi-focus">
+          <span class="station-art focus-art"><i data-lucide="headphones"></i></span>
+          <span class="station-copy">
+            <strong>Lofi Focus</strong>
+            <small>Steady beats for deep work</small>
+          </span>
+          <i data-lucide="check-circle-2" class="station-check"></i>
+        </button>
+
+        <button class="station-card" data-track="lofi-relaxing">
+          <span class="station-art relax-art"><i data-lucide="moon"></i></span>
+          <span class="station-copy">
+            <strong>Lofi Relaxing</strong>
+            <small>Slow down and unwind</small>
+          </span>
+          <i data-lucide="check-circle-2" class="station-check"></i>
+        </button>
+
+      </div>
+
+      <div class="player-row">
+        <div class="now-playing">
+          <span class="playing-dot"></span>
+          <span id="nowPlaying">Rain selected</span>
+        </div>
+
+        <button class="play-music-button" id="musicPlayButton">
+          <i data-lucide="play"></i>
+          <span>Play</span>
+        </button>
+      </div>
+
+      <audio id="audioPlayer" loop preload="none"></audio>
+    </section>
+
+    <section class="panel-section">
+      <div class="section-heading">
+        <h3>Volume</h3>
+        <span id="volumeValue" class="subtle-label">65%</span>
+      </div>
+
+      <div class="volume-row">
+        <button class="icon-button" id="muteButton" aria-label="Mute">
+          <i data-lucide="volume-2"></i>
+        </button>
+        <input
+          id="volumeSlider"
+          class="range-input"
+          type="range"
+          min="0"
+          max="100"
+          value="65"
+        >
+      </div>
+    </section>
+
+    <p class="panel-note">
+      Only the selected track plays, and it loops automatically.
+      Music will not start until you press Play.
+    </p>
+  </aside>
+
+  <!-- TASKS PANEL -->
+  <aside class="side-panel tasks-panel" id="tasksPanel" aria-hidden="true">
+
+    <div class="panel-header">
+      <div>
+        <p class="eyebrow">STAY ON TRACK</p>
+        <h2>Tasks</h2>
+      </div>
+      <button class="icon-button panel-close" aria-label="Close">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+
+    <div class="task-overview">
+      <div class="task-progress-copy">
+        <strong id="taskProgressText">0% completed</strong>
+        <span id="taskCount">0 tasks</span>
+      </div>
+      <div class="task-progress-track">
+        <span id="taskProgressBar"></span>
+      </div>
+    </div>
+
+    <div class="task-tools">
+      <label class="search-box">
+        <i data-lucide="search"></i>
+        <input id="taskSearch" type="search" placeholder="Search tasks...">
+      </label>
+
+      <select id="taskFilter" class="small-select">
+        <option value="all">All</option>
+        <option value="active">To do</option>
+        <option value="completed">Done</option>
+      </select>
+
+      <select id="taskSort" class="small-select">
+        <option value="newest">Newest</option>
+        <option value="priority">Priority</option>
+        <option value="due">Due date</option>
+      </select>
+    </div>
+
+    <form class="new-task-card" id="taskForm">
+
+      <div class="new-task-heading">
+        <h3>New task</h3>
+        <span class="optional-label">QUICK ADD</span>
+      </div>
+
+      <label class="field-label" for="taskInput">Task name</label>
+      <input
+        class="text-field"
+        id="taskInput"
+        type="text"
+        placeholder="What do you need to do?"
+        required
+        maxlength="100"
+      >
+
+      <div class="task-fields-grid">
+        <label>
+          <span class="field-label">Priority</span>
+          <select id="taskPriority" class="text-field">
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+            <option value="low">Low</option>
+          </select>
+        </label>
+
+        <label>
+          <span class="field-label">Due date</span>
+          <input id="taskDue" class="text-field" type="date">
+        </label>
+      </div>
+
+      <details class="more-task-details">
+        <summary><i data-lucide="plus"></i> Add more details</summary>
+
+        <label class="field-label" for="taskNotes">Notes</label>
+        <textarea
+          id="taskNotes"
+          class="text-field notes-field"
+          rows="2"
+          placeholder="Add a little context..."
+        ></textarea>
+
+        <label class="field-label" for="taskTags">Labels</label>
+        <input
+          id="taskTags"
+          class="text-field"
+          type="text"
+          placeholder="e.g. Physics, School"
+        >
+      </details>
+
+      <button class="add-task-button" type="submit">
+        <i data-lucide="plus"></i> Add task
+      </button>
+    </form>
+
+    <div class="task-list-heading">
+      <h3>Your tasks</h3>
+      <span id="visibleTaskCount">0 items</span>
+    </div>
+
+    <div class="task-list" id="taskList">
+      <div class="empty-tasks">
+        <i data-lucide="clipboard-check"></i>
+        <strong>Nothing on your list yet</strong>
+        <span>Add a task above to get started.</span>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- CUSTOMISE PANEL -->
+  <aside class="side-panel customise-panel" id="customPanel" aria-hidden="true">
+
+    <div class="panel-header">
+      <div>
+        <p class="eyebrow">MAKE IT YOURS</p>
+        <h2>Customise</h2>
+      </div>
+      <button class="icon-button panel-close" aria-label="Close">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+
+    <section class="panel-section">
+      <div class="section-heading">
+        <h3>Backgrounds</h3>
+        <span class="subtle-label">15 THEMES</span>
+      </div>
+
+      <p class="section-description">
+        Choose a scene. The accent colour changes with it.
+      </p>
+
+      <div class="theme-grid">
+
+        <button class="theme-option" data-theme-choice="fuji" style="--thumb:url('fuji.jpg')"><span>Fuji</span></button>
+        <button class="theme-option" data-theme-choice="japan" style="--thumb:url('japan.jpg')"><span>Japan</span></button>
+        <button class="theme-option" data-theme-choice="aurora-mount" style="--thumb:url('aurora mount.jpg')"><span>Aurora Mount</span></button>
+        <button class="theme-option" data-theme-choice="bioluminescent" style="--thumb:url('bioluminescent.jpg')"><span>Bioluminescent</span></button>
+        <button class="theme-option" data-theme-choice="white-desert" style="--thumb:url('white desert.jpg')"><span>White Desert</span></button>
+        <button class="theme-option" data-theme-choice="forest-mount" style="--thumb:url('forest mount.jpg')"><span>Forest Mount</span></button>
+        <button class="theme-option" data-theme-choice="green-valley" style="--thumb:url('green valley.jpg')"><span>Green Valley</span></button>
+        <button class="theme-option" data-theme-choice="lake" style="--thumb:url('lake.jpg')"><span>Lake</span></button>
+        <button class="theme-option selected" data-theme-choice="night-des" style="--thumb:url('night des.jpg')"><span>Night Des</span></button>
+        <button class="theme-option" data-theme-choice="night-desert" style="--thumb:url('night desert.jpg')"><span>Night Desert</span></button>
+        <button class="theme-option" data-theme-choice="night-mount" style="--thumb:url('night mount.jpg')"><span>Night Mount</span></button>
+        <button class="theme-option" data-theme-choice="aurora" style="--thumb:url('aurora.jpg')"><span>Aurora</span></button>
+        <button class="theme-option" data-theme-choice="valley" style="--thumb:url('valley.jpg')"><span>Valley</span></button>
+        
+
+      </div>
+    </section>
+
+    <section class="panel-section duration-section">
+      <div class="section-heading">
+        <h3>Timer durations</h3>
+      </div>
+
+      <div class="duration-grid">
+        <label>
+          <span class="field-label">Focus (min)</span>
+          <input class="text-field" id="focusDuration" type="number" min="1" max="180" value="45">
+        </label>
+
+        <label>
+          <span class="field-label">Short break (min)</span>
+          <input class="text-field" id="shortDuration" type="number" min="1" max="60" value="5">
+        </label>
+
+        <label>
+          <span class="field-label">Long break (min)</span>
+          <input class="text-field" id="longDuration" type="number" min="1" max="90" value="15">
+        </label>
+      </div>
+
+      <button class="apply-settings-button" id="applySettingsButton">
+        Apply durations
+      </button>
+    </section>
+
+  </aside>
+<audio id="endAlarm" src="alarm.mp3" loop></audio>
+  <script src="script.js"></script>
+</body>
+</html>
